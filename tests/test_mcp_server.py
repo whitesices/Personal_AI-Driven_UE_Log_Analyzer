@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import importlib.util
 from pathlib import Path
+
+import pytest
 
 from ue_log_analyzer.mcp_server import (
     analyze_latest_log,
@@ -88,6 +91,9 @@ def test_mcp_stdio_registered_tools() -> None:
 
 
 def test_mcp_stdio_create_server_when_sdk_available() -> None:
+    if importlib.util.find_spec("mcp") is None:
+        pytest.skip("MCP Python SDK is not installed")
+
     server = create_server()
 
     assert server is not None

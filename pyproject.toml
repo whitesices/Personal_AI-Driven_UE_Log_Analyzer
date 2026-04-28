@@ -11,13 +11,12 @@ requires-python = ">=3.10"
 authors = [
   { name = "AI Native UE Tooling" }
 ]
-dependencies = [
-  "mcp>=1.2.0"
-]
+dependencies = []
 
 [project.optional-dependencies]
 dev = [
   "build>=1.2",
+  "mcp>=1.2.0",
   "mypy>=1.8",
   "pytest>=8.0",
   "ruff>=0.5"

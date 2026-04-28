@@ -6,6 +6,7 @@
 python -m pytest
 ruff check .
 mypy src
+python -m build
 ```
 
 ## 2. Pytest Coverage
@@ -34,7 +35,7 @@ Current pytest coverage includes:
 
 ```text
 python -m pytest
-25 passed in 0.87s
+25 passed in 0.80s
 
 ruff check .
 All checks passed!
