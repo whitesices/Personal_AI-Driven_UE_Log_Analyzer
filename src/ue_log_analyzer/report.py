@@ -72,6 +72,8 @@ def render_markdown_report(result: AnalysisResult) -> str:
 
     lines.extend(["", "## Recommended Next Steps", ""])
     lines.extend(_recommended_next_steps(result))
+    lines.extend(["", "## Rule-Driven Action Plan", ""])
+    lines.extend(_rule_driven_action_plan(result))
     lines.append("")
     return "\n".join(lines)
 
@@ -120,6 +122,39 @@ def _recommended_next_steps(result: AnalysisResult) -> list[str]:
         steps.append("- 检查 UnrealBuildTool 输出、目标平台配置和模块依赖。")
     steps.append("- 修复后重新运行相关构建或打包流程，并再次分析最新日志。")
     return steps
+
+
+def _rule_driven_action_plan(result: AnalysisResult) -> list[str]:
+    prioritized = [
+        issue
+        for issue in result.issues
+        if issue.severity in {"critical", "high"} and issue.recommended_fixes
+    ]
+    if not prioritized:
+        return ["- No rule-specific high-priority action plan is available."]
+
+    lines: list[str] = []
+    seen: set[tuple[str | None, str]] = set()
+    for issue in prioritized[:3]:
+        key = (issue.rule_id, issue.message)
+        if key in seen:
+            continue
+        seen.add(key)
+        verification = (
+            issue.verification_steps[0]
+            if issue.verification_steps
+            else "Rerun and inspect latest log."
+        )
+        lines.extend(
+            [
+                f"- Rule: `{issue.rule_id or 'fallback'}`",
+                f"  - Stage: `{issue.likely_stage}`",
+                f"  - Risk: `{issue.risk_level}`",
+                f"  - First fix: {issue.recommended_fixes[0]}",
+                f"  - Verify: {verification}",
+            ]
+        )
+    return lines
 
 
 def _escape_inline(text: str) -> str:

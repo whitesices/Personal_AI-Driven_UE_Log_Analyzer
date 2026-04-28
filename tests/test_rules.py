@@ -25,6 +25,12 @@ def test_rules_match_linkersave_insaver_hotpacher_case() -> None:
     assert matches[0].rule_id == "ue_savepackage_linkersave_assertion"
 
 
+def test_hotpacher_without_linkersave_or_insaver_does_not_match_critical_rule() -> None:
+    matches = match_rules("LogHotPatcher: Display: patch settings loaded")
+
+    assert all(rule.rule_id != "ue_savepackage_linkersave_assertion" for rule in matches)
+
+
 def test_analyzer_enriches_linkersave_insaver_report(workspace: Path) -> None:
     project = make_project(
         workspace,
@@ -67,4 +73,3 @@ def test_missing_asset_rule(workspace: Path) -> None:
 
     assert result.issues[0].category == "asset_reference_error"
     assert result.issues[0].likely_stage == "Load/Cook"
-

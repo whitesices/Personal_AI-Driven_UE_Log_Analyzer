@@ -190,6 +190,7 @@ examples/sample_ue_project/Saved/Logs/
 - [Agent Task Breakdown](docs/01_AGENT_TASK_BREAKDOWN.md)
 - [AI Development Log](docs/02_AI_DEVELOPMENT_LOG.md)
 - [Human Review Notes](docs/03_HUMAN_REVIEW_NOTES.md)
+- [AI Native Workflow](docs/09_AI_NATIVE_WORKFLOW.md)
 - [PRD](docs/PRD.md)
 - [Usage Guide](docs/USAGE_GUIDE.md)
 - [Project Memory](docs/PROJECT_MEMORY.md)
@@ -202,6 +203,17 @@ examples/sample_ue_project/Saved/Logs/
 - [Test Report](docs/06_TEST_REPORT.md)
 - [Retrospective](docs/07_RETROSPECTIVE.md)
 
+## Autonomous AI Experiment
+
+A bounded no-mid-task-intervention AI development experiment is documented under:
+
+```text
+experiments/ai_autonomous_run/
+```
+
+It separates the main AI-led, human-reviewed workflow from a smaller autonomous run protocol, which
+is useful for interview discussion without overstating the project's autonomy.
+
 ## Roadmap
 
 - Add configurable YAML UE rule packs.
@@ -210,4 +222,3 @@ examples/sample_ue_project/Saved/Logs/
 - Add Git Hook installation helper.
 - Add multi-log trend analysis across repeated build attempts.
 - Add deeper AutomationTool and Cook phase parsers.
-

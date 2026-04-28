@@ -200,6 +200,11 @@ else:
 | --- | --- |
 | `README.md` | 项目入口 |
 | `docs/USAGE_GUIDE.md` | 使用指南 |
+| `docs/00_ORIGINAL_PROMPT.md` | 初始 AI 开发提示词 |
+| `docs/01_AGENT_TASK_BREAKDOWN.md` | AI 任务拆解 |
+| `docs/02_AI_DEVELOPMENT_LOG.md` | AI 开发过程记录 |
+| `docs/03_HUMAN_REVIEW_NOTES.md` | 人类 review 重点 |
+| `docs/09_AI_NATIVE_WORKFLOW.md` | AI Native 开发方法论 |
 | `docs/PRD.md` | 产品需求 |
 | `docs/TECHNICAL_DESIGN.md` | 技术方案 |
 | `docs/AI_WORKFLOW.md` | AI 工作流 |
@@ -211,7 +216,19 @@ else:
 | `docs/08_MCP_STDIO_SERVER.md` | MCP stdio Server 说明 |
 | `docs/PROJECT_MEMORY.md` | 项目同步记忆 |
 
-## 11. 后续建议
+## 11. Autonomous Experiment
+
+The bounded autonomous AI experiment is stored in:
+
+```text
+experiments/ai_autonomous_run/
+```
+
+It documents a no-mid-task-human-confirmation workflow for a small change. The main project should
+still be described as AI-led with human review, while this experiment demonstrates how autonomous AI
+work can be scoped and validated.
+
+## 12. 后续建议
 
 建议下一阶段按优先级推进：
 
@@ -221,7 +238,7 @@ else:
 4. 对 Cook、AutomationTool、Blueprint Compiler 增加更细分类。
 5. 支持分析多个日志文件并生成趋势摘要。
 
-## 12. 交接提醒
+## 13. 交接提醒
 
 后续开发前请先确认：
 

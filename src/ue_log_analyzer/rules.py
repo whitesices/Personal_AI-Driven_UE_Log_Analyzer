@@ -37,10 +37,7 @@ class UERule:
 UE_RULES: tuple[UERule, ...] = (
     UERule(
         rule_id="ue_savepackage_linkersave_assertion",
-        pattern=(
-            r"(Assertion failed:\s*InSaver|LinkerSave\.cpp|LogSavePackage|"
-            r"SavePackage|HotPatcher)"
-        ),
+        pattern=r"(Assertion failed:\s*InSaver|LinkerSave\.cpp)",
         category="asset_reference_error",
         severity="critical",
         likely_stage="Cook/Package",
