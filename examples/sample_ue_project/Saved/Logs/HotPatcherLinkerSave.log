@@ -1,0 +1,5 @@
+LogInit: Display: BuildCookRun started for sample project.
+LogHotPatcher: Error: Failed during SavePackage for /Game/Patches/PatchAsset.
+Assertion failed: InSaver [File:Runtime/CoreUObject/Private/UObject/LinkerSave.cpp] [Line: 321]
+LogWindows: Error: Fatal error: SavePackage failed while HotPatcher was serializing package data.
+

@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 
 from .models import DetectedLine, LogIssue
+from .rules import UERule, match_rules
 
 CATEGORY_ORDER = (
     "runtime_crash",
@@ -20,6 +21,10 @@ def classify_detected_line(line: DetectedLine) -> LogIssue:
     text = line.text
     lowered = text.lower()
     keywords = tuple(line.matched_keywords)
+    matched_rules = match_rules(text)
+    if matched_rules:
+        return _issue_from_rule(line, matched_rules[0], keywords)
+
     category = _classify_category(text, lowered, keywords)
     severity = _classify_severity(text, lowered, category, keywords)
     return LogIssue(
@@ -29,6 +34,11 @@ def classify_detected_line(line: DetectedLine) -> LogIssue:
         message=text,
         matched_keywords=keywords,
         explanation=_explain(category, severity),
+        likely_stage=_default_stage(category),
+        risk_level=_default_risk(severity),
+        possible_causes=_default_possible_causes(category),
+        recommended_fixes=_default_recommended_fixes(category),
+        verification_steps=_default_verification_steps(category),
     )
 
 
@@ -36,8 +46,26 @@ def classify_lines(lines: list[DetectedLine]) -> list[LogIssue]:
     return [classify_detected_line(line) for line in lines]
 
 
+def _issue_from_rule(line: DetectedLine, rule: UERule, keywords: tuple[str, ...]) -> LogIssue:
+    return LogIssue(
+        category=rule.category,
+        severity=rule.severity,
+        line_number=line.line_number,
+        message=line.text,
+        matched_keywords=tuple(dict.fromkeys((*keywords, rule.rule_id))),
+        explanation=f"Matched UE rule `{rule.rule_id}` for {rule.likely_stage}.",
+        likely_stage=rule.likely_stage,
+        risk_level=rule.risk_level,
+        possible_causes=rule.possible_causes,
+        recommended_fixes=rule.recommended_fixes,
+        verification_steps=rule.verification_steps,
+        rule_id=rule.rule_id,
+    )
+
+
 def _classify_category(text: str, lowered: str, keywords: tuple[str, ...]) -> str:
-    if any(token in lowered for token in ("fatal error", "assertion failed", "unhandled exception")):
+    crash_tokens = ("fatal error", "assertion failed", "unhandled exception")
+    if any(token in lowered for token in crash_tokens):
         return "runtime_crash"
     if "packagingresults" in lowered or "uathelper" in lowered or "automationtool" in lowered:
         return "packaging_error"
@@ -49,7 +77,12 @@ def _classify_category(text: str, lowered: str, keywords: tuple[str, ...]) -> st
         or "c++ compiler error" in {keyword.lower() for keyword in keywords}
     ):
         return "cpp_compile_error"
-    if "logcompile" in lowered or "build failed" in lowered or "unrealbuildtool" in lowered or " ubt" in lowered:
+    if (
+        "logcompile" in lowered
+        or "build failed" in lowered
+        or "unrealbuildtool" in lowered
+        or " ubt" in lowered
+    ):
         return "build_error"
     if (
         "logpluginmanager" in lowered
@@ -76,7 +109,8 @@ def _classify_severity(
     category: str,
     keywords: tuple[str, ...],
 ) -> str:
-    if any(token in lowered for token in ("fatal error", "assertion failed", "unhandled exception")):
+    crash_tokens = ("fatal error", "assertion failed", "unhandled exception")
+    if any(token in lowered for token in crash_tokens):
         return "critical"
     if category in {"packaging_error", "cpp_compile_error", "build_error"}:
         return "high"
@@ -91,14 +125,86 @@ def _classify_severity(
 
 def _explain(category: str, severity: str) -> str:
     category_explanations = {
-        "build_error": "构建链路出现失败信号，优先检查 UnrealBuildTool、编译配置和依赖模块。",
-        "packaging_error": "打包阶段出现错误，通常需要检查 UAT、Cook、资源和平台配置日志上下文。",
-        "runtime_crash": "运行时出现崩溃或断言失败，需要优先定位调用栈、断言条件和最近代码改动。",
-        "plugin_compatibility": "插件或模块加载存在兼容风险，建议核对插件版本、启用状态和目标 UE 版本。",
-        "blueprint_error": "蓝图编译或运行时信号异常，建议打开对应 Blueprint 查看节点和引用。",
-        "asset_reference_error": "资源加载或引用缺失，建议检查路径、重定向器和 Cook 资源包含规则。",
-        "cpp_compile_error": "C++ 编译器报告错误，建议从首个编译错误行开始修复。",
-        "unknown": "日志行包含通用错误或警告信号，需要结合上下文继续判断。",
+        "build_error": "Build pipeline reported a failure signal.",
+        "packaging_error": "Packaging reported a UAT, Cook, Stage, or Archive failure.",
+        "runtime_crash": "Runtime crash or assertion signal detected.",
+        "plugin_compatibility": "Plugin or module loading compatibility risk detected.",
+        "blueprint_error": "Blueprint compile or runtime signal detected.",
+        "asset_reference_error": "Asset loading, reference, or serialization signal detected.",
+        "cpp_compile_error": "C++ compiler error detected.",
+        "unknown": "Generic error or warning signal detected.",
     }
-    return f"{category_explanations.get(category, category_explanations['unknown'])} 严重度：{severity}。"
+    explanation = category_explanations.get(category, category_explanations["unknown"])
+    return f"{explanation} Severity: {severity}."
 
+
+def _default_stage(category: str) -> str:
+    stages = {
+        "build_error": "Build",
+        "packaging_error": "Package",
+        "runtime_crash": "Runtime",
+        "plugin_compatibility": "Build/Startup/Package",
+        "blueprint_error": "Build/Cook/Runtime",
+        "asset_reference_error": "Load/Cook",
+        "cpp_compile_error": "Build",
+        "unknown": "Unknown",
+    }
+    return stages.get(category, "Unknown")
+
+
+def _default_risk(severity: str) -> str:
+    if severity in {"critical", "high"}:
+        return severity
+    return "medium" if severity == "medium" else "low"
+
+
+def _default_possible_causes(category: str) -> tuple[str, ...]:
+    causes = {
+        "build_error": ("Build toolchain, module dependencies, or platform config failed.",),
+        "packaging_error": ("Cook, Stage, Archive, SDK, plugin, or asset packaging failed.",),
+        "runtime_crash": ("Runtime state violated an engine or project invariant.",),
+        "plugin_compatibility": ("Plugin version, module descriptor, or dependency mismatch.",),
+        "blueprint_error": (
+            "Blueprint graph, generated bindings, or referenced assets are invalid.",
+        ),
+        "asset_reference_error": (
+            "Asset path, redirector, soft reference, or Cook inclusion is invalid.",
+        ),
+        "cpp_compile_error": ("C++ syntax, include, API, generated code, or Build.cs issue.",),
+        "unknown": ("The log line contains a generic error or warning signal.",),
+    }
+    return causes.get(category, causes["unknown"])
+
+
+def _default_recommended_fixes(category: str) -> tuple[str, ...]:
+    fixes = {
+        "build_error": ("Inspect the first build error and validate target/module settings.",),
+        "packaging_error": (
+            "Search earlier in the log for the first upstream Cook or Stage error.",
+        ),
+        "runtime_crash": ("Inspect the assertion or crash stack and isolate recent changes.",),
+        "plugin_compatibility": (
+            "Verify plugin version, rebuild binaries, and test with plugin disabled.",
+        ),
+        "blueprint_error": ("Open the Blueprint, refresh nodes, compile, and resave.",),
+        "asset_reference_error": ("Fix redirectors and validate references to missing assets.",),
+        "cpp_compile_error": ("Fix the first compiler error before chasing cascaded failures.",),
+        "unknown": ("Review nearby context lines to identify the responsible subsystem.",),
+    }
+    return fixes.get(category, fixes["unknown"])
+
+
+def _default_verification_steps(category: str) -> tuple[str, ...]:
+    steps = {
+        "build_error": ("Run a clean build for the same target.",),
+        "packaging_error": (
+            "Rerun packaging and confirm the latest log has no high severity errors.",
+        ),
+        "runtime_crash": ("Reproduce the scenario and verify the crash no longer occurs.",),
+        "plugin_compatibility": ("Rerun startup or packaging with the plugin enabled.",),
+        "blueprint_error": ("Compile the Blueprint and rerun Cook or PIE.",),
+        "asset_reference_error": ("Load the referencing map or Blueprint and rerun Cook.",),
+        "cpp_compile_error": ("Run the compiler again and confirm zero C++ errors.",),
+        "unknown": ("Re-run the failing workflow and compare the latest log.",),
+    }
+    return steps.get(category, steps["unknown"])

@@ -1,129 +1,213 @@
-# AI-Driven UE Log Analyzer
+# Personal_AI-Driven_UE_Log_Analyzer
 
-本项目是一个本地 Python 工具，用于读取 Unreal Engine 项目 `Saved/Logs` 下的最新日志，检测常见错误信号，分类问题类型，并生成结构化 Markdown 分析报告。它也提供 MCP-style 工具函数、UE Log Analysis Skill 和 Hook 脚本，方便接入 AI Native 开发流程。
+[![CI](https://github.com/whitesices/Personal_AI-Driven_UE_Log_Analyzer/actions/workflows/ci.yml/badge.svg)](https://github.com/whitesices/Personal_AI-Driven_UE_Log_Analyzer/actions/workflows/ci.yml)
 
-## 功能
+AI-Driven UE Log Analyzer is a local, safety-bounded Unreal Engine log analysis toolkit built as an interview-ready AI Agent engineering showcase.
 
-- 自动查找 UE 项目最新 `.log` 文件。
-- 只读取用户指定 UE 项目目录内的日志文件。
-- 日志过长时默认只读取最后 20000 字符。
-- 检测 `Error`、`Warning`、`Fatal error`、`Assertion failed`、`PackagingResults: Error` 等信号。
-- 分类为构建错误、打包错误、运行时崩溃、插件兼容、蓝图错误、资源引用错误、C++ 编译错误或未知问题。
-- 输出结构化 Markdown 报告。
-- 提供 MCP-style Python 工具函数。
-- 提供 AI 工作流 Skill 和 Hook 脚本。
-- 包含 pytest 测试。
-
-## 目录结构
+It demonstrates a full loop:
 
 ```text
-.
-├── docs/
-├── hooks/
-├── skills/
-│   └── ue-log-analysis/
-├── src/
-│   └── ue_log_analyzer/
-├── tests/
-├── pyproject.toml
-└── README.md
+UE Project Saved/Logs
+        |
+        v
+Python Analyzer + UE Rule Library
+        |
+        +--> CLI Markdown Report
+        +--> MCP stdio Server for AI Agents
+        +--> Skill-guided UE triage workflow
+        +--> Hooks for test and pre-commit checks
+        +--> Tests / CI / Docs / Retrospective
 ```
 
-## 安装
+## Why This Shows AI-led Development
+
+This project is not only a log parser. It is designed to show how AI can lead a small but complete engineering workflow:
+
+- **Skill** captures repeatable UE log analysis expertise.
+- **MCP** exposes safe UE project context to AI tools.
+- **Hook** closes the loop after AI code changes and before Git commits.
+- **Tests / CI** keep behavior reliable.
+- **Docs / Retrospective** preserve the AI-led development process for review.
+
+## Features
+
+- Find the newest `.log` file under `<UE_PROJECT>/Saved/Logs`.
+- Read only inside the user-provided UE project directory.
+- Analyze only the trailing log content by default.
+- Detect UE-specific issues, including LinkerSave, SavePackage, Assertion failed, AutomationTool, PackagingResults, Unknown Cook Failure, Blueprint compile errors, missing assets, plugin/module failures, C++ compile errors, Shader/DDC, SDK, Pak, and IoStore issues.
+- Generate structured Markdown reports with:
+  - category
+  - severity
+  - likely UE stage
+  - risk level
+  - possible causes
+  - recommended fixes
+  - verification steps
+- Run as CLI, MCP stdio server, or Python API.
+- Provide hooks, tests, CI, Skill docs, and interview artifacts.
+
+## Install
 
 ```bash
 python -m pip install -e ".[dev]"
 ```
 
-如果不安装，也可以在仓库中直接运行 pytest；`pyproject.toml` 已配置 `pythonpath = ["src"]`。
+## CLI Usage
 
-## 使用 CLI
-
-```bash
-ue-log-analyzer <UE_PROJECT_ROOT>
-```
-
-或：
+Preferred explicit form:
 
 ```bash
-python -m ue_log_analyzer.cli <UE_PROJECT_ROOT>
+python -m ue_log_analyzer --project "D:/UEProjects/MyProject"
 ```
 
-写入报告文件：
+Save a report inside the UE project:
 
 ```bash
-ue-log-analyzer <UE_PROJECT_ROOT> --output <UE_PROJECT_ROOT>/Saved/Logs/AI_Log_Report.md
+python -m ue_log_analyzer --project "D:/UEProjects/MyProject" --output "AIReports/latest_report.md"
 ```
 
-## MCP-style 工具函数
+Backward-compatible console script:
 
-核心函数位于 `src/ue_log_analyzer/mcp_server.py`：
-
-```python
-from ue_log_analyzer.mcp_server import generate_markdown_report
-
-result = generate_markdown_report("D:/UnrealProjects/MyGame")
-print(result["report"])
+```bash
+ue-log-analyzer "D:/UEProjects/MyProject"
 ```
 
-可用工具：
+Analyze a specific project-local log:
 
-- `get_latest_log_info(project_root)`
-- `analyze_latest_log(project_root, read_limit_chars=20000)`
-- `generate_markdown_report(project_root, read_limit_chars=20000)`
-- `dispatch_tool(name, arguments)`
+```bash
+python -m ue_log_analyzer --project "D:/UEProjects/MyProject" --log-path "Saved/Logs/MyProject.log"
+```
 
-## Hook
+Security note: `--output` and `--log-path` are constrained to the UE project directory.
 
-代码修改后运行测试：
+## MCP Server Usage
+
+Run the real stdio MCP server:
+
+```bash
+python -m ue_log_analyzer.mcp_stdio_server
+```
+
+Example MCP client configuration for Claude Desktop / Claude Code / Cursor:
+
+```json
+{
+  "mcpServers": {
+    "ue-log-analyzer": {
+      "command": "python",
+      "args": ["-m", "ue_log_analyzer.mcp_stdio_server"]
+    }
+  }
+}
+```
+
+This is a configuration template. The project provides a real stdio server adapter, but each client may require environment-specific setup.
+
+Registered tools:
+
+- `get_latest_log_info`
+- `analyze_latest_log`
+- `generate_markdown_report`
+- `scan_ue_project_structure`
+
+See [MCP stdio server design](docs/08_MCP_STDIO_SERVER.md).
+
+## Hook Usage
+
+Run tests after AI code changes:
 
 ```bash
 python hooks/after_code_change.py
 ```
 
-提交前扫描最新 UE 日志：
+Scan latest UE log before commit:
 
 ```bash
-python hooks/pre_commit_scan.py <UE_PROJECT_ROOT>
+python hooks/pre_commit_scan.py "D:/UEProjects/MyProject"
 ```
 
-或：
+The pre-commit scan returns non-zero when critical or high severity UE log issues are found.
 
-```bash
-UE_PROJECT_ROOT=<UE_PROJECT_ROOT> python hooks/pre_commit_scan.py
+## Skill Usage
+
+The UE Log Analysis Skill lives at:
+
+```text
+skills/ue-log-analysis/SKILL.md
 ```
 
-如果发现 `critical` 或 `high` 严重度问题，`pre_commit_scan.py` 返回 `1`。
+The Skill defines the repeatable AI workflow for:
 
-## 测试
+- selecting the latest log
+- enforcing safe project-bound reads
+- identifying UE build/cook/package/runtime stages
+- explaining likely causes
+- recommending fixes
+- validating after code changes
+
+## Tests And Quality
 
 ```bash
 python -m pytest
+ruff check .
+mypy src
+python -m build
 ```
 
-当前测试结果：
+GitHub Actions CI runs:
+
+- install
+- pytest
+- ruff
+- mypy
+
+## Example Reports
+
+- [HotPatcher LinkerSave Assertion](examples/reports/hotpatcher_linkersave_assertion_report.md)
+- [Packaging Failed](examples/reports/packaging_failed_report.md)
+- [Blueprint Compile Error](examples/reports/blueprint_compile_error_report.md)
+
+Sample logs are under:
 
 ```text
-15 passed
+examples/sample_ue_project/Saved/Logs/
 ```
 
-## 文档
+## Safety Boundaries
 
+- No external API calls.
+- No log upload.
+- No Unreal Editor launch.
+- No execution of scripts from UE projects.
+- Input log paths must stay inside the UE project directory.
+- CLI output paths must stay inside the UE project directory.
+- MCP tools reuse the same safety-bounded business functions.
+- Long logs are read through bounded tail analysis.
+
+## Documentation Map
+
+- [Original Prompt](docs/00_ORIGINAL_PROMPT.md)
+- [Agent Task Breakdown](docs/01_AGENT_TASK_BREAKDOWN.md)
+- [AI Development Log](docs/02_AI_DEVELOPMENT_LOG.md)
+- [Human Review Notes](docs/03_HUMAN_REVIEW_NOTES.md)
 - [PRD](docs/PRD.md)
 - [Usage Guide](docs/USAGE_GUIDE.md)
 - [Project Memory](docs/PROJECT_MEMORY.md)
 - [Technical Design](docs/TECHNICAL_DESIGN.md)
 - [AI Workflow](docs/AI_WORKFLOW.md)
 - [MCP Design](docs/MCP_DESIGN.md)
+- [MCP stdio Server](docs/08_MCP_STDIO_SERVER.md)
 - [Skill Design](docs/SKILL_DESIGN.md)
 - [Hook Design](docs/HOOK_DESIGN.md)
-- [Test Report](docs/TEST_REPORT.md)
-- [Retrospective](docs/RETROSPECTIVE.md)
+- [Test Report](docs/06_TEST_REPORT.md)
+- [Retrospective](docs/07_RETROSPECTIVE.md)
 
-## 安全边界
+## Roadmap
 
-- 读取文件时必须位于用户指定的 UE 项目目录内。
-- 默认最多分析日志末尾 20000 字符。
-- 不执行日志内容。
-- 不启动 Unreal Editor。
-- 不删除、不重置、不修改 UE 项目文件。
+- Add configurable YAML UE rule packs.
+- Add stdio MCP integration smoke tests.
+- Add HTML and SARIF report output.
+- Add Git Hook installation helper.
+- Add multi-log trend analysis across repeated build attempts.
+- Add deeper AutomationTool and Cook phase parsers.
+

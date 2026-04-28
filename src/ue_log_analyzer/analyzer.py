@@ -35,6 +35,8 @@ def analyze_project(
 def summarize_issues(issues: list[LogIssue]) -> AnalysisSummary:
     severity_counts = Counter(issue.severity for issue in issues)
     category_counts = Counter(issue.category for issue in issues)
+    stage_counts = Counter(issue.likely_stage for issue in issues)
+    risk_counts = Counter(issue.risk_level for issue in issues)
     keyword_counts: Counter[str] = Counter()
     for issue in issues:
         keyword_counts.update(issue.matched_keywords)
@@ -44,6 +46,7 @@ def summarize_issues(issues: list[LogIssue]) -> AnalysisSummary:
         severity_counts=dict(sorted(severity_counts.items())),
         category_counts=dict(sorted(category_counts.items())),
         keyword_counts=dict(sorted(keyword_counts.items())),
+        stage_counts=dict(sorted(stage_counts.items())),
+        risk_counts=dict(sorted(risk_counts.items())),
         has_blocking_issue=any(issue.severity in BLOCKING_SEVERITIES for issue in issues),
     )
-

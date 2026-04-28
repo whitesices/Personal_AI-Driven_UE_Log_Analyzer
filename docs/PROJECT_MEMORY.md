@@ -19,6 +19,7 @@ AI-Driven UE Log Analyzer 是一个本地 Python 工具，用于分析 Unreal En
 - Python 包结构已建立。
 - 核心日志分析能力已实现。
 - MCP-style 工具函数已实现。
+- MCP stdio Server 适配层已实现。
 - UE Log Analysis Skill 已编写。
 - Hook 脚本已实现。
 - README 和 docs 文档已补齐。
@@ -28,10 +29,10 @@ AI-Driven UE Log Analyzer 是一个本地 Python 工具，用于分析 Unreal En
 
 ```text
 python -m pytest
-15 passed
+25 passed
 
 python hooks\after_code_change.py
-15 passed
+25 passed
 
 python hooks\pre_commit_scan.py examples\sample_ue_project
 UE log scan: 1 issue(s), blocking=0
@@ -62,6 +63,7 @@ UE log scan: 1 issue(s), blocking=0
 | `analyzer.py` | 编排读取、检测、分类和统计 |
 | `report.py` | 生成结构化 Markdown 报告 |
 | `mcp_server.py` | 提供 MCP-style 工具函数和 dispatcher |
+| `mcp_stdio_server.py` | 提供真实 MCP stdio Server 适配层 |
 | `cli.py` | 命令行入口 |
 
 ## 5. 安全边界
@@ -142,9 +144,14 @@ python hooks\after_code_change.py
 python hooks\pre_commit_scan.py "D:\UnrealProjects\MyGame"
 ```
 
-## 8. MCP-style 调用
+## 8. MCP 调用
 
-当前 MCP 层是 runtime 无关的 Python 工具函数，位置：
+当前 MCP 分为两层：
+
+- `mcp_server.py`：runtime 无关的 Python 工具函数，方便测试和复用。
+- `mcp_stdio_server.py`：真实 stdio MCP Server 适配层，供 Claude Desktop / Claude Code / Cursor 等客户端参考接入。
+
+工具函数位置：
 
 ```text
 src/ue_log_analyzer/mcp_server.py
@@ -156,6 +163,13 @@ src/ue_log_analyzer/mcp_server.py
 - `analyze_latest_log(project_root, read_limit_chars=20000)`
 - `generate_markdown_report(project_root, read_limit_chars=20000)`
 - `dispatch_tool(name, arguments)`
+- `scan_ue_project_structure(project_root)`
+
+stdio Server：
+
+```powershell
+python -m ue_log_analyzer.mcp_stdio_server
+```
 
 示例：
 
@@ -192,20 +206,20 @@ else:
 | `docs/MCP_DESIGN.md` | MCP 设计 |
 | `docs/SKILL_DESIGN.md` | Skill 设计 |
 | `docs/HOOK_DESIGN.md` | Hook 设计 |
-| `docs/TEST_REPORT.md` | 测试报告 |
-| `docs/RETROSPECTIVE.md` | 项目复盘 |
+| `docs/06_TEST_REPORT.md` | 第二轮测试报告 |
+| `docs/07_RETROSPECTIVE.md` | 第二轮项目复盘 |
+| `docs/08_MCP_STDIO_SERVER.md` | MCP stdio Server 说明 |
 | `docs/PROJECT_MEMORY.md` | 项目同步记忆 |
 
 ## 11. 后续建议
 
 建议下一阶段按优先级推进：
 
-1. 增加 stdio MCP server 适配层。
-2. 增加可配置规则文件，例如 `rules/ue_patterns.yml`。
-3. 增加 Git Hook 自动安装脚本。
-4. 增加 HTML 或 SARIF 报告输出。
-5. 对 Cook、AutomationTool、Blueprint Compiler 增加更细分类。
-6. 支持分析多个日志文件并生成趋势摘要。
+1. 增加可配置规则文件，例如 `rules/ue_patterns.yml`。
+2. 增加 Git Hook 自动安装脚本。
+3. 增加 HTML 或 SARIF 报告输出。
+4. 对 Cook、AutomationTool、Blueprint Compiler 增加更细分类。
+5. 支持分析多个日志文件并生成趋势摘要。
 
 ## 12. 交接提醒
 
@@ -214,6 +228,5 @@ else:
 - 是否改动了 `reader.py` 的路径安全逻辑。
 - 是否改动了默认读取限制。
 - 是否新增了会访问网络、启动 UE、删除文件或执行 shell 的行为。
-- 是否更新了测试和 `docs/TEST_REPORT.md`。
+- 是否更新了测试和 `docs/06_TEST_REPORT.md`。
 - 是否同步更新了本文件。
-

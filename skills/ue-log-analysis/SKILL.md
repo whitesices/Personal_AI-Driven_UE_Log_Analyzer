@@ -32,11 +32,19 @@ Use the local Python package first:
 python -m ue_log_analyzer.cli <UE_PROJECT_ROOT>
 ```
 
-For AI Agent integration, call the MCP-style functions in `ue_log_analyzer.mcp_server`:
+For AI Agent integration, prefer the stdio MCP server when the client supports MCP:
+
+```bash
+python -m ue_log_analyzer.mcp_stdio_server
+```
+
+For tests or direct Python integration, call the MCP-style functions in
+`ue_log_analyzer.mcp_server`:
 
 - `get_latest_log_info(project_root)`
 - `analyze_latest_log(project_root, read_limit_chars=20000)`
 - `generate_markdown_report(project_root, read_limit_chars=20000)`
+- `scan_ue_project_structure(project_root)`
 
 ## Safety Rules
 
@@ -53,4 +61,3 @@ For AI Agent integration, call the MCP-style functions in `ue_log_analyzer.mcp_s
 - `LogLinker`, `Can't find file`, and `Failed to load` usually indicate asset reference or Cook inclusion problems.
 - `LogPluginManager`, plugin load failures, and missing modules usually indicate plugin compatibility or module configuration problems.
 - Blueprint errors may appear during compile, PIE, Cook, or packaging; mention the phase when visible.
-

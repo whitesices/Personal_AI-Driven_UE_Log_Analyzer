@@ -5,6 +5,8 @@ __pycache__/
 test_tmp/
 pytest-cache-files-*/
 test_workspace/
+pip_tmp/
+build_tmp/
 build/
 dist/
 *.egg-info/

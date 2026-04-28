@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
 from .analyzer import analyze_project
+from .project_scanner import scan_project_structure
 from .reader import (
     DEFAULT_READ_LIMIT_CHARS,
     LogReaderError,
@@ -14,6 +16,8 @@ from .reader import (
     resolve_project_root,
 )
 from .report import render_markdown_report
+
+ToolHandler = Callable[..., dict[str, Any]]
 
 
 def get_latest_log_info(project_root: str) -> dict[str, Any]:
@@ -61,6 +65,17 @@ def generate_markdown_report(
             "ok": True,
             "report": render_markdown_report(result),
             "analysis": result.to_dict(),
+        }
+    except LogReaderError as exc:
+        return _error(str(exc))
+
+
+def scan_ue_project_structure(project_root: str) -> dict[str, Any]:
+    """Return high-level UE project structure without reading outside project_root."""
+    try:
+        return {
+            "ok": True,
+            "project_structure": scan_project_structure(project_root),
         }
     except LogReaderError as exc:
         return _error(str(exc))
@@ -120,16 +135,25 @@ def tool_manifest() -> dict[str, Any]:
                     "read_limit_chars": "integer optional",
                 },
             },
+            {
+                "name": "scan_ue_project_structure",
+                "description": (
+                    "Return high-level UE project folders, .uproject files, "
+                    "plugins, and latest log."
+                ),
+                "input_schema": {"project_root": "string"},
+            },
         ],
     }
 
 
 def dispatch_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     """Small dispatcher useful for MCP adapters and tests."""
-    tools = {
+    tools: dict[str, ToolHandler] = {
         "get_latest_log_info": get_latest_log_info,
         "analyze_latest_log": analyze_latest_log,
         "generate_markdown_report": generate_markdown_report,
+        "scan_ue_project_structure": scan_ue_project_structure,
     }
     if name not in tools:
         return _error(f"Unknown tool: {name}")

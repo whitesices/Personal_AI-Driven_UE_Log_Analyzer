@@ -20,7 +20,7 @@ python -m pytest
 ## 4. 最终结果
 
 ```text
-15 passed in 0.09s
+25 passed in 0.87s
 ```
 
 ## 5. 覆盖范围
@@ -38,6 +38,12 @@ python -m pytest
 - MCP dispatcher 未知工具错误。
 - Hook 命令构造。
 - pre-commit 扫描阻塞与非阻塞退出码。
+- MCP stdio adapter 注册工具列表。
+- MCP stdio Server 对象创建。
+- UE 专业规则库匹配。
+- CLI 输出路径越权拦截。
+- UE 项目结构扫描。
+- HotPatcher / LinkerSave / InSaver、Packaging、Blueprint、Missing Asset 样例。
 
 ## 6. Hook 验证
 
@@ -50,7 +56,7 @@ python hooks/after_code_change.py
 结果：
 
 ```text
-15 passed in 0.07s
+25 passed in 0.87s
 ```
 
 执行：
@@ -87,6 +93,6 @@ PermissionError: [WinError 5] Access denied
 
 ## 8. 剩余风险
 
-- 当前 MCP 实现为 runtime 无关工具函数，尚未绑定具体 MCP stdio runtime。
+- MCP stdio Server 已实现；仍建议在目标客户端中做一次端到端连接验证。
 - 分类规则采用启发式规则，后续可以引入更细粒度 UE 日志模式库。
 - Hook 目前不自动安装到 `.git/hooks`，需要用户按项目策略接入。

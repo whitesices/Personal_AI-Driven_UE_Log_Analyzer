@@ -1,0 +1,5 @@
+UATHelper: Packaging (Windows): AutomationTool Error: Cook failed.
+LogCook: Error: Unknown Cook Failure
+PackagingResults: Error: Unknown Cook Failure
+AutomationTool exiting with ExitCode=25 (Error_UnknownCookFailure)
+

@@ -10,8 +10,8 @@ SRC_DIR = REPO_ROOT / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from ue_log_analyzer.analyzer import BLOCKING_SEVERITIES, analyze_project
-from ue_log_analyzer.reader import DEFAULT_READ_LIMIT_CHARS, LogReaderError
+from ue_log_analyzer.analyzer import BLOCKING_SEVERITIES, analyze_project  # noqa: E402
+from ue_log_analyzer.reader import DEFAULT_READ_LIMIT_CHARS, LogReaderError  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -71,4 +71,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

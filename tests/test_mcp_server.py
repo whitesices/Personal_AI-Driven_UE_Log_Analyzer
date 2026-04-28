@@ -7,13 +7,23 @@ from ue_log_analyzer.mcp_server import (
     dispatch_tool,
     generate_markdown_report,
     get_latest_log_info,
+    scan_ue_project_structure,
 )
+from ue_log_analyzer.mcp_stdio_server import create_server, registered_tool_names
 
 
 def make_project(workspace: Path) -> Path:
     project = workspace / "Project"
     logs = project / "Saved" / "Logs"
     logs.mkdir(parents=True)
+    (project / "Project.uproject").write_text("{}", encoding="utf-8")
+    (project / "Source").mkdir()
+    (project / "Content").mkdir()
+    (project / "Plugins" / "DemoPlugin").mkdir(parents=True)
+    (project / "Plugins" / "DemoPlugin" / "DemoPlugin.uplugin").write_text(
+        "{}",
+        encoding="utf-8",
+    )
     (logs / "Project.log").write_text(
         "Source/Test.cpp(1): error C2143: syntax error",
         encoding="utf-8",
@@ -54,3 +64,30 @@ def test_mcp_dispatch_rejects_unknown_tool() -> None:
 
     assert result["ok"] is False
     assert "Unknown tool" in result["error"]
+
+
+def test_mcp_scan_ue_project_structure(workspace: Path) -> None:
+    project = make_project(workspace)
+
+    result = scan_ue_project_structure(str(project))
+
+    assert result["ok"] is True
+    structure = result["project_structure"]
+    assert structure["uproject_files"] == ["Project.uproject"]
+    assert structure["directory_presence"]["Source"] is True
+    assert structure["plugin_descriptors"] == ["Plugins/DemoPlugin/DemoPlugin.uplugin"]
+
+
+def test_mcp_stdio_registered_tools() -> None:
+    assert registered_tool_names() == (
+        "get_latest_log_info",
+        "analyze_latest_log",
+        "generate_markdown_report",
+        "scan_ue_project_structure",
+    )
+
+
+def test_mcp_stdio_create_server_when_sdk_available() -> None:
+    server = create_server()
+
+    assert server is not None

@@ -39,10 +39,19 @@ class LogIssue:
     message: str
     matched_keywords: tuple[str, ...]
     explanation: str
+    likely_stage: str = "Unknown"
+    risk_level: str = "medium"
+    possible_causes: tuple[str, ...] = field(default_factory=tuple)
+    recommended_fixes: tuple[str, ...] = field(default_factory=tuple)
+    verification_steps: tuple[str, ...] = field(default_factory=tuple)
+    rule_id: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         data = asdict(self)
         data["matched_keywords"] = list(self.matched_keywords)
+        data["possible_causes"] = list(self.possible_causes)
+        data["recommended_fixes"] = list(self.recommended_fixes)
+        data["verification_steps"] = list(self.verification_steps)
         return data
 
 
@@ -52,6 +61,8 @@ class AnalysisSummary:
     severity_counts: dict[str, int]
     category_counts: dict[str, int]
     keyword_counts: dict[str, int]
+    stage_counts: dict[str, int]
+    risk_counts: dict[str, int]
     has_blocking_issue: bool
 
     def to_dict(self) -> dict[str, Any]:
@@ -76,4 +87,3 @@ class AnalysisResult:
 
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)
-

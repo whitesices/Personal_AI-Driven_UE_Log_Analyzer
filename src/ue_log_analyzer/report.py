@@ -26,6 +26,8 @@ def render_markdown_report(result: AnalysisResult) -> str:
         f"- Blocking issue found: `{'yes' if summary.has_blocking_issue else 'no'}`",
         f"- Severity counts: `{summary.severity_counts}`",
         f"- Category counts: `{summary.category_counts}`",
+        f"- Stage counts: `{summary.stage_counts}`",
+        f"- Risk counts: `{summary.risk_counts}`",
         f"- Keyword counts: `{summary.keyword_counts}`",
         "",
         "## High Priority Issues",
@@ -59,6 +61,8 @@ def render_markdown_report(result: AnalysisResult) -> str:
             lines.extend(
                 [
                     f"- Line `{issue.line_number}` [{issue.severity}/{issue.category}]",
+                    f"  - Stage: `{issue.likely_stage}`",
+                    f"  - Risk: `{issue.risk_level}`",
                     f"  - Keywords: `{', '.join(issue.matched_keywords)}`",
                     f"  - Text: `{_escape_inline(issue.message)}`",
                 ]
@@ -78,9 +82,14 @@ def _render_issue_list(issues: list[LogIssue]) -> list[str]:
         rendered.extend(
             [
                 f"- Line `{issue.line_number}`: `{issue.severity}` / `{issue.category}`",
+                f"  - Stage: `{issue.likely_stage}`",
+                f"  - Risk: `{issue.risk_level}`",
                 f"  - Matched: `{', '.join(issue.matched_keywords)}`",
                 f"  - Message: `{_escape_inline(issue.message)}`",
                 f"  - Interpretation: {issue.explanation}",
+                f"  - Possible causes: {_format_inline_list(issue.possible_causes)}",
+                f"  - Recommended fixes: {_format_inline_list(issue.recommended_fixes)}",
+                f"  - Verification: {_format_inline_list(issue.verification_steps)}",
             ]
         )
     return rendered
@@ -116,3 +125,8 @@ def _recommended_next_steps(result: AnalysisResult) -> list[str]:
 def _escape_inline(text: str) -> str:
     return text.replace("`", "'")
 
+
+def _format_inline_list(values: tuple[str, ...]) -> str:
+    if not values:
+        return "`n/a`"
+    return "; ".join(values)
