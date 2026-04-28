@@ -110,6 +110,8 @@ python -m pytest
 ## 文档
 
 - [PRD](docs/PRD.md)
+- [Usage Guide](docs/USAGE_GUIDE.md)
+- [Project Memory](docs/PROJECT_MEMORY.md)
 - [Technical Design](docs/TECHNICAL_DESIGN.md)
 - [AI Workflow](docs/AI_WORKFLOW.md)
 - [MCP Design](docs/MCP_DESIGN.md)
