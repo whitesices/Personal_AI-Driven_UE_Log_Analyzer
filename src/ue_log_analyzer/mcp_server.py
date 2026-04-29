@@ -6,6 +6,9 @@ from pathlib import Path
 from typing import Any
 
 from .analyzer import analyze_project
+from .auto_fix_agent import generate_auto_fix_plan
+from .blueprint_analyzer import analyze_blueprint_errors
+from .plugin_checker import check_plugin_compatibility
 from .project_scanner import scan_project_structure
 from .reader import (
     DEFAULT_READ_LIMIT_CHARS,
@@ -81,6 +84,51 @@ def scan_ue_project_structure(project_root: str) -> dict[str, Any]:
         return _error(str(exc))
 
 
+def check_ue_plugin_compatibility(project_root: str) -> dict[str, Any]:
+    """Check UE plugin descriptors for version and module compatibility risks."""
+    try:
+        return {
+            "ok": True,
+            "plugin_compatibility": check_plugin_compatibility(project_root).to_dict(),
+        }
+    except LogReaderError as exc:
+        return _error(str(exc))
+
+
+def analyze_ue_blueprint_errors(
+    project_root: str,
+    read_limit_chars: int = DEFAULT_READ_LIMIT_CHARS,
+) -> dict[str, Any]:
+    """Analyze latest UE log for Blueprint compile and runtime errors."""
+    try:
+        return {
+            "ok": True,
+            "blueprint_analysis": analyze_blueprint_errors(
+                project_root,
+                read_limit_chars=read_limit_chars,
+            ).to_dict(),
+        }
+    except LogReaderError as exc:
+        return _error(str(exc))
+
+
+def generate_ue_auto_fix_plan(
+    project_root: str,
+    read_limit_chars: int = DEFAULT_READ_LIMIT_CHARS,
+) -> dict[str, Any]:
+    """Generate a non-mutating fix suggestion plan from UE diagnostics."""
+    try:
+        return {
+            "ok": True,
+            "auto_fix_plan": generate_auto_fix_plan(
+                project_root,
+                read_limit_chars=read_limit_chars,
+            ).to_dict(),
+        }
+    except LogReaderError as exc:
+        return _error(str(exc))
+
+
 def write_markdown_report(
     project_root: str,
     output_path: str,
@@ -143,6 +191,27 @@ def tool_manifest() -> dict[str, Any]:
                 ),
                 "input_schema": {"project_root": "string"},
             },
+            {
+                "name": "check_ue_plugin_compatibility",
+                "description": "Check UE plugin descriptors for compatibility risks.",
+                "input_schema": {"project_root": "string"},
+            },
+            {
+                "name": "analyze_ue_blueprint_errors",
+                "description": "Analyze the newest UE log for Blueprint errors.",
+                "input_schema": {
+                    "project_root": "string",
+                    "read_limit_chars": "integer optional",
+                },
+            },
+            {
+                "name": "generate_ue_auto_fix_plan",
+                "description": "Generate a safe, non-mutating UE fix suggestion plan.",
+                "input_schema": {
+                    "project_root": "string",
+                    "read_limit_chars": "integer optional",
+                },
+            },
         ],
     }
 
@@ -154,6 +223,9 @@ def dispatch_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         "analyze_latest_log": analyze_latest_log,
         "generate_markdown_report": generate_markdown_report,
         "scan_ue_project_structure": scan_ue_project_structure,
+        "check_ue_plugin_compatibility": check_ue_plugin_compatibility,
+        "analyze_ue_blueprint_errors": analyze_ue_blueprint_errors,
+        "generate_ue_auto_fix_plan": generate_ue_auto_fix_plan,
     }
     if name not in tools:
         return _error(f"Unknown tool: {name}")

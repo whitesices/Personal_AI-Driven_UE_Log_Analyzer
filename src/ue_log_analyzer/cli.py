@@ -4,13 +4,22 @@ import argparse
 from pathlib import Path
 
 from .analyzer import analyze_project
+from .auto_fix_agent import generate_auto_fix_plan
+from .blueprint_analyzer import analyze_blueprint_errors
+from .models import AnalysisResult
+from .plugin_checker import check_plugin_compatibility
 from .reader import (
     DEFAULT_READ_LIMIT_CHARS,
     LogReaderError,
     ensure_within_project,
     resolve_project_root,
 )
-from .report import render_markdown_report
+from .report import (
+    render_auto_fix_plan,
+    render_blueprint_analysis_report,
+    render_markdown_report,
+    render_plugin_compatibility_report,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -21,6 +30,8 @@ def build_parser() -> argparse.ArgumentParser:
             "  python -m ue_log_analyzer --project D:/UEProjects/MyProject\n"
             "  python -m ue_log_analyzer --project D:/UEProjects/MyProject "
             "--output AIReports/latest_report.md\n"
+            "  python -m ue_log_analyzer --project D:/UEProjects/MyProject "
+            "--full-diagnostics\n"
             "  ue-log-analyzer D:/UEProjects/MyProject --log-path Saved/Logs/MyProject.log"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -54,6 +65,26 @@ def build_parser() -> argparse.ArgumentParser:
             "directory. Absolute paths outside the project are rejected."
         ),
     )
+    parser.add_argument(
+        "--plugin-check",
+        action="store_true",
+        help="Append a UE plugin compatibility report based on .uproject and .uplugin files.",
+    )
+    parser.add_argument(
+        "--blueprint-analysis",
+        action="store_true",
+        help="Append a Blueprint compile/runtime error analysis from the latest log.",
+    )
+    parser.add_argument(
+        "--fix-plan",
+        action="store_true",
+        help="Append a safe, non-mutating UE auto fix suggestion plan.",
+    )
+    parser.add_argument(
+        "--full-diagnostics",
+        action="store_true",
+        help="Enable plugin check, Blueprint analysis, and auto fix suggestions.",
+    )
     return parser
 
 
@@ -72,7 +103,7 @@ def main(argv: list[str] | None = None) -> int:
             log_path=args.log_path,
             read_limit_chars=args.read_limit_chars,
         )
-        report = render_markdown_report(result)
+        report = _build_report(root, result, args)
         output_path = _resolve_output_path(root, args.output) if args.output else None
     except LogReaderError as exc:
         parser.error(str(exc))
@@ -91,6 +122,37 @@ def _resolve_output_path(project_root: Path, output: str) -> Path:
     if not requested_output.is_absolute():
         requested_output = project_root / requested_output
     return ensure_within_project(requested_output, project_root)
+
+
+def _build_report(root: Path, result: AnalysisResult, args: argparse.Namespace) -> str:
+    report_sections = [render_markdown_report(result)]
+    plugin_check_enabled = bool(args.plugin_check or args.full_diagnostics)
+    blueprint_enabled = bool(args.blueprint_analysis or args.full_diagnostics)
+    fix_plan_enabled = bool(args.fix_plan or args.full_diagnostics)
+
+    if plugin_check_enabled:
+        report_sections.append(render_plugin_compatibility_report(check_plugin_compatibility(root)))
+    if blueprint_enabled:
+        report_sections.append(
+            render_blueprint_analysis_report(
+                analyze_blueprint_errors(
+                    root,
+                    log_path=args.log_path,
+                    read_limit_chars=args.read_limit_chars,
+                )
+            )
+        )
+    if fix_plan_enabled:
+        report_sections.append(
+            render_auto_fix_plan(
+                generate_auto_fix_plan(
+                    root,
+                    log_path=args.log_path,
+                    read_limit_chars=args.read_limit_chars,
+                )
+            )
+        )
+    return "\n\n---\n\n".join(report_sections)
 
 
 if __name__ == "__main__":

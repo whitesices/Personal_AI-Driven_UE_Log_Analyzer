@@ -70,3 +70,13 @@ mypy src
 
 `ruff` 和 `mypy` 是第二轮新增质量门禁。
 
+## 6. 第三轮强化记录
+
+本轮新增三个 UE 专项诊断 Agent：
+
+- `plugin_checker.py`：检查 `.uproject` / `.uplugin` 插件兼容性风险。
+- `blueprint_analyzer.py`：分析 Blueprint 编译、运行时、缺失符号和 `Accessed None` 问题。
+- `auto_fix_agent.py`：汇总日志、插件和 Blueprint 诊断，生成只读修复建议计划。
+
+AI 同步完成了 CLI 开关、MCP 工具注册、Skill 文档、README、使用指南和 pytest 覆盖。
+测试过程中发现 `Accessed None` 曾被归入通用 runtime error，随后将分类优先级修正为更具体的 Blueprint 诊断。

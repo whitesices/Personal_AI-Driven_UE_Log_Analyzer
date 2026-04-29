@@ -32,6 +32,9 @@ The code structure remains in place so CI and users can install the dependency l
 | `analyze_latest_log` | Return structured UE log analysis JSON |
 | `generate_markdown_report` | Return a Markdown analysis report |
 | `scan_ue_project_structure` | Return high-level UE project structure and latest log path |
+| `check_ue_plugin_compatibility` | Inspect `.uproject` and `.uplugin` descriptors for plugin compatibility risks |
+| `analyze_ue_blueprint_errors` | Extract Blueprint compile/runtime errors from the latest bounded log tail |
+| `generate_ue_auto_fix_plan` | Return a prioritized, non-mutating UE fix suggestion plan |
 
 ## 4. Safety Boundary
 
@@ -40,6 +43,8 @@ The code structure remains in place so CI and users can install the dependency l
 - MCP tools do not execute log content.
 - MCP tools do not run UE project scripts.
 - `generate_markdown_report` returns Markdown and does not write files.
+- `generate_ue_auto_fix_plan` is advisory only and does not modify files.
+- Plugin compatibility checks read descriptors and file presence only.
 - Structure scanning lists high-level paths only.
 
 ## 5. Running The Server
@@ -78,4 +83,3 @@ This is a configuration template. Actual client setup may differ by tool and env
 - Add an integration smoke test that starts the stdio server when MCP SDK is available.
 - Add richer project context tools for `.uproject`, `.uplugin`, and `Build.cs` summaries.
 - Add per-tool schemas once the selected MCP client workflow is finalized.
-

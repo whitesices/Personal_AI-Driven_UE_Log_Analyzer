@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from collections import defaultdict
 
+from .auto_fix_agent import AutoFixPlan
+from .blueprint_analyzer import BlueprintAnalysisReport
 from .models import AnalysisResult, LogIssue
+from .plugin_checker import PluginCompatibilityReport
 
 
 def render_markdown_report(result: AnalysisResult) -> str:
@@ -165,3 +168,86 @@ def _format_inline_list(values: tuple[str, ...]) -> str:
     if not values:
         return "`n/a`"
     return "; ".join(values)
+
+
+def render_plugin_compatibility_report(report: PluginCompatibilityReport) -> str:
+    lines = [
+        "# UE Plugin Compatibility Report",
+        "",
+        f"- UE project: `{report.project_root}`",
+        f"- Engine association: `{report.engine_association or 'unknown'}`",
+        f"- Plugins scanned: `{report.plugins_scanned}`",
+        f"- Issues found: `{len(report.issues)}`",
+        "",
+        "## Issues",
+        "",
+    ]
+    if not report.issues:
+        lines.append("- No plugin compatibility risks detected.")
+    for issue in report.issues:
+        lines.extend(
+            [
+                f"- `{issue.severity}` / `{issue.issue_type}`: {issue.plugin_name}",
+                f"  - Message: {issue.message}",
+                f"  - Evidence: `{_escape_inline(issue.evidence)}`",
+                f"  - Recommended fixes: {_format_inline_list(issue.recommended_fixes)}",
+                f"  - Verification: {_format_inline_list(issue.verification_steps)}",
+            ]
+        )
+    return "\n".join(lines)
+
+
+def render_blueprint_analysis_report(report: BlueprintAnalysisReport) -> str:
+    lines = [
+        "# UE Blueprint Error Analysis",
+        "",
+        f"- UE project: `{report.project_root}`",
+        f"- Log file: `{report.log_path}`",
+        f"- Blueprint findings: `{report.total_errors}`",
+        "",
+        "## Findings",
+        "",
+    ]
+    if not report.insights:
+        lines.append("- No Blueprint compile or runtime errors detected.")
+    for insight in report.insights:
+        lines.extend(
+            [
+                f"- Line `{insight.line_number}`: `{insight.error_type}`",
+                f"  - Blueprint: `{insight.blueprint_name or 'unknown'}`",
+                f"  - Stage: `{insight.likely_stage}`",
+                f"  - Missing symbol: `{insight.missing_symbol or 'n/a'}`",
+                f"  - Message: `{_escape_inline(insight.message)}`",
+                f"  - Possible causes: {_format_inline_list(insight.possible_causes)}",
+                f"  - Recommended fixes: {_format_inline_list(insight.recommended_fixes)}",
+                f"  - Verification: {_format_inline_list(insight.verification_steps)}",
+            ]
+        )
+    return "\n".join(lines)
+
+
+def render_auto_fix_plan(plan: AutoFixPlan) -> str:
+    lines = [
+        "# UE Auto Fix Suggestion Plan",
+        "",
+        f"- UE project: `{plan.project_root}`",
+        f"- Suggestions: `{len(plan.suggestions)}`",
+        "",
+        "## Suggested Actions",
+        "",
+    ]
+    if not plan.suggestions:
+        lines.append("- No automated fix suggestions were generated.")
+    for suggestion in plan.suggestions:
+        lines.extend(
+            [
+                f"- P{suggestion.priority}: {suggestion.title}",
+                f"  - Category: `{suggestion.category}`",
+                f"  - Risk: `{suggestion.risk_level}`",
+                f"  - Rationale: {suggestion.rationale}",
+                f"  - Actions: {_format_inline_list(suggestion.actions)}",
+                f"  - Verification: {_format_inline_list(suggestion.verification_steps)}",
+                f"  - Safety: {_format_inline_list(suggestion.safety_notes)}",
+            ]
+        )
+    return "\n".join(lines)

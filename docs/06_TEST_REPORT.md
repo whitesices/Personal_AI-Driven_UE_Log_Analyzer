@@ -23,25 +23,30 @@ Current pytest coverage includes:
 - PackagingResults and Unknown Cook Failure scenario.
 - Blueprint compile error scenario.
 - Missing Asset scenario.
+- UE plugin compatibility checker, including engine version mismatch and missing modules.
+- UE Blueprint analyzer, including compile failures, missing symbols, and `Accessed None`.
+- UE Auto Fix Suggestion Agent combining log, plugin, and Blueprint diagnostics.
 - Markdown report required sections.
 - MCP-style tools and dispatcher.
 - MCP stdio adapter registered tool names.
+- MCP stdio registration for plugin, Blueprint, and auto fix tools.
 - MCP stdio server creation when MCP SDK is installed.
 - `scan_ue_project_structure`.
 - CLI output path boundary checks.
+- CLI `--full-diagnostics` combined report output.
 - Hook command construction and pre-commit scan behavior.
 
 ## 3. Latest Result
 
 ```text
 python -m pytest
-25 passed in 0.80s
+38 passed in 0.77s
 
 ruff check .
 All checks passed!
 
 mypy src
-Success: no issues found in 13 source files
+Success: no issues found in 16 source files
 
 python -m build
 Successfully built source distribution and wheel

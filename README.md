@@ -10,11 +10,12 @@ It demonstrates a full loop:
 UE Project Saved/Logs
         |
         v
-Python Analyzer + UE Rule Library
+Python Analyzer + UE Rule Library + Diagnostic Agents
         |
         +--> CLI Markdown Report
         +--> MCP stdio Server for AI Agents
         +--> Skill-guided UE triage workflow
+        +--> Plugin Compatibility / Blueprint / Auto Fix Suggestion Agents
         +--> Hooks for test and pre-commit checks
         +--> Tests / CI / Docs / Retrospective
 ```
@@ -35,6 +36,9 @@ This project is not only a log parser. It is designed to show how AI can lead a 
 - Read only inside the user-provided UE project directory.
 - Analyze only the trailing log content by default.
 - Detect UE-specific issues, including LinkerSave, SavePackage, Assertion failed, AutomationTool, PackagingResults, Unknown Cook Failure, Blueprint compile errors, missing assets, plugin/module failures, C++ compile errors, Shader/DDC, SDK, Pak, and IoStore issues.
+- Check UE plugin compatibility from `.uproject` and `.uplugin` descriptors, including engine version mismatch, missing modules, and enabled plugin gaps.
+- Analyze Blueprint compile/runtime failures with likely stage, missing symbol, root-cause hints, fix steps, and verification steps.
+- Generate a deterministic UE Auto Fix Suggestion Plan. It is advisory only and never edits the UE project.
 - Generate structured Markdown reports with:
   - category
   - severity
@@ -78,6 +82,15 @@ Analyze a specific project-local log:
 python -m ue_log_analyzer --project "D:/UEProjects/MyProject" --log-path "Saved/Logs/MyProject.log"
 ```
 
+Append advanced diagnostics:
+
+```bash
+python -m ue_log_analyzer --project "D:/UEProjects/MyProject" --plugin-check
+python -m ue_log_analyzer --project "D:/UEProjects/MyProject" --blueprint-analysis
+python -m ue_log_analyzer --project "D:/UEProjects/MyProject" --fix-plan
+python -m ue_log_analyzer --project "D:/UEProjects/MyProject" --full-diagnostics
+```
+
 Security note: `--output` and `--log-path` are constrained to the UE project directory.
 
 ## MCP Server Usage
@@ -109,6 +122,9 @@ Registered tools:
 - `analyze_latest_log`
 - `generate_markdown_report`
 - `scan_ue_project_structure`
+- `check_ue_plugin_compatibility`
+- `analyze_ue_blueprint_errors`
+- `generate_ue_auto_fix_plan`
 
 See [MCP stdio server design](docs/08_MCP_STDIO_SERVER.md).
 
@@ -166,6 +182,7 @@ GitHub Actions CI runs:
 - [HotPatcher LinkerSave Assertion](examples/reports/hotpatcher_linkersave_assertion_report.md)
 - [Packaging Failed](examples/reports/packaging_failed_report.md)
 - [Blueprint Compile Error](examples/reports/blueprint_compile_error_report.md)
+- [Full Diagnostics](examples/reports/full_diagnostics_report.md)
 
 Sample logs are under:
 
@@ -191,6 +208,7 @@ examples/sample_ue_project/Saved/Logs/
 - [AI Development Log](docs/02_AI_DEVELOPMENT_LOG.md)
 - [Human Review Notes](docs/03_HUMAN_REVIEW_NOTES.md)
 - [AI Native Workflow](docs/09_AI_NATIVE_WORKFLOW.md)
+- [Advanced Diagnostic Agents](docs/10_ADVANCED_DIAGNOSTIC_AGENTS.md)
 - [PRD](docs/PRD.md)
 - [Usage Guide](docs/USAGE_GUIDE.md)
 - [Project Memory](docs/PROJECT_MEMORY.md)
@@ -222,3 +240,4 @@ is useful for interview discussion without overstating the project's autonomy.
 - Add Git Hook installation helper.
 - Add multi-log trend analysis across repeated build attempts.
 - Add deeper AutomationTool and Cook phase parsers.
+- Add optional read-only `.uplugin` dependency graph summaries for larger plugin ecosystems.

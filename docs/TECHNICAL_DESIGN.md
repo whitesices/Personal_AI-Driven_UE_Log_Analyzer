@@ -23,6 +23,7 @@ ue_log_analyzer.report
         +--> CLI
         +--> Hooks
         +--> MCP tool functions
+        +--> Diagnostic Agents
 ```
 
 ## 2. 目录结构
@@ -103,6 +104,31 @@ ue_log_analyzer.report
 
 - 提供命令行入口。
 - 支持输出 Markdown 报告到 stdout 或文件。
+- 支持 `--plugin-check`、`--blueprint-analysis`、`--fix-plan` 和 `--full-diagnostics`。
+
+### 3.9 `plugin_checker.py`
+
+职责：
+
+- 读取 `.uproject` 与项目内 `.uplugin` 描述文件。
+- 检查插件引擎版本、模块 Source/Binaries 和启用状态风险。
+- 保持只读，不加载或执行插件代码。
+
+### 3.10 `blueprint_analyzer.py`
+
+职责：
+
+- 从日志尾部提取 Blueprint 编译和运行时错误。
+- 识别缺失函数、缺失属性、`Accessed None` 和 K2 节点问题。
+- 输出可验证的修复建议。
+
+### 3.11 `auto_fix_agent.py`
+
+职责：
+
+- 汇总核心日志分析、插件检查和 Blueprint 分析。
+- 生成优先级排序的修复建议计划。
+- 保持 advisory-only，不修改 UE 项目文件。
 
 ## 4. 安全设计
 

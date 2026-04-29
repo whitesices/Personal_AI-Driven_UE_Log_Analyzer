@@ -101,7 +101,35 @@ ue-log-analyzer "D:\UnrealProjects\MyGame" --read-limit-chars 8000
 ue-log-analyzer "D:\UnrealProjects\MyGame" --read-limit-chars 50000
 ```
 
-## 7. 不安装时直接运行
+## 7. 启用高级诊断 Agent
+
+插件兼容性检查：
+
+```powershell
+python -m ue_log_analyzer --project "D:\UnrealProjects\MyGame" --plugin-check
+```
+
+Blueprint 错误专项分析：
+
+```powershell
+python -m ue_log_analyzer --project "D:\UnrealProjects\MyGame" --blueprint-analysis
+```
+
+生成只读自动修复建议计划：
+
+```powershell
+python -m ue_log_analyzer --project "D:\UnrealProjects\MyGame" --fix-plan
+```
+
+一次性启用全部高级诊断：
+
+```powershell
+python -m ue_log_analyzer --project "D:\UnrealProjects\MyGame" --full-diagnostics
+```
+
+这些能力仍然遵守项目目录安全边界，不会执行 UE 项目脚本，也不会自动修改 UE 项目文件。
+
+## 8. 不安装时直接运行
 
 如果暂时不想安装包，可以在工具项目目录中运行：
 
@@ -118,7 +146,7 @@ $env:PYTHONPATH="$PWD\src"
 python -m ue_log_analyzer.cli "D:\UnrealProjects\MyGame" --output "D:\UnrealProjects\MyGame\Saved\Logs\AI_Log_Report.md"
 ```
 
-## 8. 提交前扫描 UE 日志
+## 9. 提交前扫描 UE 日志
 
 使用 Hook 脚本扫描最新 UE 日志：
 
@@ -140,7 +168,7 @@ $env:UE_PROJECT_ROOT="D:\UnrealProjects\MyGame"
 python hooks\pre_commit_scan.py
 ```
 
-## 9. AI 修改代码后运行测试
+## 10. AI 修改代码后运行测试
 
 在本工具项目中运行：
 
@@ -156,7 +184,7 @@ python -m pytest
 
 并返回 pytest 的退出码。
 
-## 10. 在 Python 中调用
+## 11. 在 Python 中调用
 
 生成 Markdown 报告：
 
@@ -179,7 +207,21 @@ result = analyze_latest_log("D:/UnrealProjects/MyGame")
 print(result["analysis"]["summary"])
 ```
 
-## 11. 示例项目验证
+高级诊断函数：
+
+```python
+from ue_log_analyzer import (
+    analyze_blueprint_errors,
+    check_plugin_compatibility,
+    generate_auto_fix_plan,
+)
+
+plugin_report = check_plugin_compatibility("D:/UnrealProjects/MyGame")
+blueprint_report = analyze_blueprint_errors("D:/UnrealProjects/MyGame")
+fix_plan = generate_auto_fix_plan("D:/UnrealProjects/MyGame")
+```
+
+## 12. 示例项目验证
 
 本仓库包含一个最小示例：
 
@@ -199,7 +241,7 @@ python hooks\pre_commit_scan.py examples\sample_ue_project
 UE log scan: 1 issue(s), blocking=0
 ```
 
-## 12. 常见问题
+## 13. 常见问题
 
 ### 找不到日志目录
 
@@ -246,4 +288,3 @@ ue-log-analyzer "D:\UnrealProjects\MyGame" --read-limit-chars 50000
 ```powershell
 ue-log-analyzer "D:\UnrealProjects\MyGame" --log-path "Saved\Logs\MyGame.log"
 ```
-

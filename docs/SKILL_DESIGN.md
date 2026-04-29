@@ -35,7 +35,17 @@ skills/ue-log-analysis/SKILL.md
 2. 查找 `Saved/Logs` 最新 `.log` 文件。
 3. 读取尾部最多 20000 字符。
 4. 检测并分类问题。
-5. 输出结构化报告。
-6. 修改代码后运行测试。
-7. 提交前扫描最新日志。
+5. 根据需要调用插件兼容性检查、Blueprint 错误分析和自动修复建议 Agent。
+6. 输出结构化报告。
+7. 修改代码后运行测试。
+8. 提交前扫描最新日志。
 
+## 6. 第三轮强化
+
+Skill 现在不仅描述“如何读日志”，也描述“如何组织 AI Agent 诊断链路”：
+
+- Plugin Checker 用于确认插件版本、模块和启用状态风险。
+- Blueprint Analyzer 用于定位 Blueprint 编译、运行时和缺失符号问题。
+- Auto Fix Suggestion Agent 用于输出只读、可验证的修复建议。
+
+这些能力让 Skill 从提示词说明升级为可被 CLI、MCP 和测试共同验证的工程流程。

@@ -19,6 +19,9 @@ MCP tools：
 | `analyze_latest_log` | `project_root`, `read_limit_chars` | 结构化 JSON 分析结果 |
 | `generate_markdown_report` | `project_root`, `read_limit_chars` | Markdown 报告和 JSON 分析结果 |
 | `scan_ue_project_structure` | `project_root` | UE 项目结构摘要 |
+| `check_ue_plugin_compatibility` | `project_root` | UE 插件兼容性风险 |
+| `analyze_ue_blueprint_errors` | `project_root`, `read_limit_chars` | Blueprint 编译/运行时错误专项分析 |
+| `generate_ue_auto_fix_plan` | `project_root`, `read_limit_chars` | 只读自动修复建议计划 |
 
 ## 3. 安全边界
 

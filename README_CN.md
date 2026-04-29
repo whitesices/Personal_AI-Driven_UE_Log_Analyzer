@@ -10,11 +10,12 @@ AI-Driven UE Log Analyzer 是一个本地运行、带安全边界的 Unreal Engi
 UE Project Saved/Logs
         |
         v
-Python Analyzer + UE Rule Library
+Python Analyzer + UE Rule Library + Diagnostic Agents
         |
         +--> CLI Markdown Report
         +--> MCP stdio Server for AI Agents
         +--> Skill-guided UE triage workflow
+        +--> Plugin Compatibility / Blueprint / Auto Fix Suggestion Agents
         +--> Hooks for test and pre-commit checks
         +--> Tests / CI / Docs / Retrospective
 ```
@@ -35,6 +36,9 @@ Python Analyzer + UE Rule Library
 - 只读取用户指定 UE 项目目录内部的文件。
 - 默认只分析日志尾部内容，避免超大日志占用过多上下文。
 - 检测 UE 专项问题，包括 LinkerSave、SavePackage、Assertion failed、AutomationTool、PackagingResults、Unknown Cook Failure、Blueprint 编译错误、资源缺失、插件/模块加载失败、C++ 编译错误、Shader/DDC、SDK、Pak 和 IoStore 问题。
+- 通过 `.uproject` 和 `.uplugin` 检查 UE 插件兼容性，包括引擎版本不匹配、模块缺失、启用插件缺口等。
+- 面向 Blueprint 编译和运行时错误生成专项分析，包括阶段判断、缺失符号、可能根因、修复步骤和验证步骤。
+- 生成 UE 自动修复建议计划。该 Agent 只给出可执行建议，不会修改 UE 项目文件。
 - 生成结构化 Markdown 报告，包含：
   - category
   - severity
@@ -78,6 +82,15 @@ ue-log-analyzer "D:/UEProjects/MyProject"
 python -m ue_log_analyzer --project "D:/UEProjects/MyProject" --log-path "Saved/Logs/MyProject.log"
 ```
 
+追加高级诊断：
+
+```bash
+python -m ue_log_analyzer --project "D:/UEProjects/MyProject" --plugin-check
+python -m ue_log_analyzer --project "D:/UEProjects/MyProject" --blueprint-analysis
+python -m ue_log_analyzer --project "D:/UEProjects/MyProject" --fix-plan
+python -m ue_log_analyzer --project "D:/UEProjects/MyProject" --full-diagnostics
+```
+
 安全说明：`--output` 和 `--log-path` 都会被限制在 UE 项目目录内。
 
 ## MCP Server 使用
@@ -109,6 +122,9 @@ Claude Desktop / Claude Code / Cursor 可参考如下 MCP 客户端配置：
 - `analyze_latest_log`
 - `generate_markdown_report`
 - `scan_ue_project_structure`
+- `check_ue_plugin_compatibility`
+- `analyze_ue_blueprint_errors`
+- `generate_ue_auto_fix_plan`
 
 详见 [MCP stdio server 设计](docs/08_MCP_STDIO_SERVER.md)。
 
@@ -166,6 +182,7 @@ GitHub Actions CI 会执行：
 - [HotPatcher LinkerSave Assertion](examples/reports/hotpatcher_linkersave_assertion_report.md)
 - [Packaging Failed](examples/reports/packaging_failed_report.md)
 - [Blueprint Compile Error](examples/reports/blueprint_compile_error_report.md)
+- [Full Diagnostics](examples/reports/full_diagnostics_report.md)
 
 示例日志位于：
 
@@ -191,6 +208,7 @@ examples/sample_ue_project/Saved/Logs/
 - [AI Development Log](docs/02_AI_DEVELOPMENT_LOG.md)
 - [Human Review Notes](docs/03_HUMAN_REVIEW_NOTES.md)
 - [AI Native Workflow](docs/09_AI_NATIVE_WORKFLOW.md)
+- [Advanced Diagnostic Agents](docs/10_ADVANCED_DIAGNOSTIC_AGENTS.md)
 - [PRD](docs/PRD.md)
 - [Usage Guide](docs/USAGE_GUIDE.md)
 - [Project Memory](docs/PROJECT_MEMORY.md)
@@ -221,4 +239,3 @@ experiments/ai_autonomous_run/
 - 增加 Git Hook 安装辅助脚本。
 - 增加多次构建日志的趋势分析。
 - 增加更深入的 AutomationTool 和 Cook 阶段解析器。
-

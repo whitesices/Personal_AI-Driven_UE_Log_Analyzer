@@ -24,15 +24,16 @@ AI-Driven UE Log Analyzer 是一个本地 Python 工具，用于分析 Unreal En
 - Hook 脚本已实现。
 - README 和 docs 文档已补齐。
 - pytest 测试已通过。
+- 第三轮强化已加入 UE 插件兼容性检查器、UE 蓝图错误分析器和 UE 自动修复建议 Agent。
 
 最新验证结果：
 
 ```text
 python -m pytest
-25 passed
+38 passed
 
 python hooks\after_code_change.py
-25 passed
+38 passed
 
 python hooks\pre_commit_scan.py examples\sample_ue_project
 UE log scan: 1 issue(s), blocking=0
@@ -65,6 +66,9 @@ UE log scan: 1 issue(s), blocking=0
 | `mcp_server.py` | 提供 MCP-style 工具函数和 dispatcher |
 | `mcp_stdio_server.py` | 提供真实 MCP stdio Server 适配层 |
 | `cli.py` | 命令行入口 |
+| `plugin_checker.py` | 检查 `.uproject` / `.uplugin` 插件版本、模块和启用状态风险 |
+| `blueprint_analyzer.py` | 提取 Blueprint 编译、运行时、缺失符号和 Accessed None 问题 |
+| `auto_fix_agent.py` | 汇总日志、插件和蓝图诊断，生成只读自动修复建议计划 |
 
 ## 5. 安全边界
 
@@ -126,6 +130,12 @@ ue-log-analyzer "D:\UnrealProjects\MyGame" --output "D:\UnrealProjects\MyGame\Sa
 ue-log-analyzer "D:\UnrealProjects\MyGame" --log-path "Saved\Logs\MyGame.log"
 ```
 
+完整高级诊断：
+
+```powershell
+python -m ue_log_analyzer --project "D:\UnrealProjects\MyGame" --full-diagnostics
+```
+
 运行测试：
 
 ```powershell
@@ -164,6 +174,9 @@ src/ue_log_analyzer/mcp_server.py
 - `generate_markdown_report(project_root, read_limit_chars=20000)`
 - `dispatch_tool(name, arguments)`
 - `scan_ue_project_structure(project_root)`
+- `check_ue_plugin_compatibility(project_root)`
+- `analyze_ue_blueprint_errors(project_root, read_limit_chars=20000)`
+- `generate_ue_auto_fix_plan(project_root, read_limit_chars=20000)`
 
 stdio Server：
 

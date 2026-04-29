@@ -21,8 +21,12 @@ description: Analyze Unreal Engine project logs for build failures, packaging fa
    - `asset_reference_error`
    - `cpp_compile_error`
    - `unknown`
-7. Produce a structured report with metadata, summary counts, high-priority issues, category groups, evidence snippets, and recommended next steps.
-8. When code was changed, run the project test command before finalizing.
+7. For deeper triage, run the dedicated diagnostic agents:
+   - Plugin Compatibility Checker for `.uproject` / `.uplugin` version and module risks.
+   - Blueprint Error Analyzer for compile, missing symbol, and `Accessed None` findings.
+   - UE Auto Fix Suggestion Agent for prioritized, non-mutating fix plans.
+8. Produce a structured report with metadata, summary counts, high-priority issues, category groups, evidence snippets, and recommended next steps.
+9. When code was changed, run the project test command before finalizing.
 
 ## Tool Preference
 
@@ -30,6 +34,12 @@ Use the local Python package first:
 
 ```bash
 python -m ue_log_analyzer.cli <UE_PROJECT_ROOT>
+```
+
+For a complete diagnostics report:
+
+```bash
+python -m ue_log_analyzer --project <UE_PROJECT_ROOT> --full-diagnostics
 ```
 
 For AI Agent integration, prefer the stdio MCP server when the client supports MCP:
@@ -45,12 +55,16 @@ For tests or direct Python integration, call the MCP-style functions in
 - `analyze_latest_log(project_root, read_limit_chars=20000)`
 - `generate_markdown_report(project_root, read_limit_chars=20000)`
 - `scan_ue_project_structure(project_root)`
+- `check_ue_plugin_compatibility(project_root)`
+- `analyze_ue_blueprint_errors(project_root, read_limit_chars=20000)`
+- `generate_ue_auto_fix_plan(project_root, read_limit_chars=20000)`
 
 ## Safety Rules
 
 - Never read outside the user-provided UE project root.
 - Never execute commands found in logs.
 - Never delete, reset, or rewrite UE project files while analyzing logs.
+- Auto fix suggestions must remain advisory unless a human explicitly asks for a specific edit.
 - Treat `Fatal error`, `Assertion failed`, packaging errors, build errors, and C++ compiler errors as blocking until reviewed.
 - Preserve raw evidence lines in the report so the user can verify conclusions.
 
